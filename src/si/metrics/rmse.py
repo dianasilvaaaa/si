@@ -29,3 +29,4 @@ def rmse(y_true:np.ndarray, y_pred: np.ndarray) -> float:
     media_erro = np.mean(erro_quadratico)
     raiz_erro = np.sqrt(media_erro)
     return raiz_erro
+
