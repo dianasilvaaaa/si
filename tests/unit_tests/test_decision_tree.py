@@ -27,16 +27,16 @@ class TestDecisionTree(TestCase):
 
 
     def test_predict(self):
-        ridge = DecisionTreeClassifier()
-        ridge.fit(self.train_dataset)
+        decision_tree = DecisionTreeClassifier()
+        decision_tree.fit(self.train_dataset)
 
-        predictions = ridge.predict(self.test_dataset)
+        predictions = decision_tree.predict(self.test_dataset)
 
         self.assertEqual(predictions.shape[0], self.test_dataset.shape()[0])
     
     def test_score(self):
-        ridge = DecisionTreeClassifier()
-        ridge.fit(self.train_dataset)
-        accuracy_ = ridge.score(self.test_dataset)
+        decision_tree = DecisionTreeClassifier()
+        decision_tree.fit(self.train_dataset)
+        accuracy_ = decision_tree.score(self.test_dataset)
 
         self.assertEqual(round(accuracy_, 2), 0.92)
