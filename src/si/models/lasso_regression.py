@@ -1,6 +1,6 @@
 import numpy as np
-from base.model import Model
-from data.dataset import Dataset
+from si.base.model import Model
+from si.data.dataset import Dataset
 from si.metrics.mse import mse
 
 class LassoRegression(Model):
