@@ -6,7 +6,7 @@ from si.model_selection.randomized_search import randomized_search_cv
 from si.models.logistic_regression import LogisticRegression
 from si.metrics.accuracy import accuracy
 from datasets import DATASETS_PATH
-
+from si.model_selection.cross_validate import k_fold_cross_validation
 
 class TestRandomizedSearchCV(TestCase):
     def setUp(self):

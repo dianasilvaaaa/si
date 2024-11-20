@@ -2,7 +2,7 @@ import numpy as np
 from si.base.model import Model
 from si.data.dataset import Dataset
 import itertools
-from si.model_selection.cross_validate import k_fold_cross_validation
+#from si.model_selection.cross_validate import k_fold_cross_validation
 
 def randomized_search_cv(
     model: Model,
