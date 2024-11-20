@@ -4,81 +4,109 @@ from si.data.dataset import Dataset
 import itertools
 from si.model_selection.cross_validate import k_fold_cross_validation
 
-def randomized_search_cv(model: Model, dataset: Dataset, hyperparameter_grid: dict, scoring: callable = None, cv =3 , n_iter = 10)-> dict:
-
+def randomized_search_cv(
+    model: Model,
+    dataset: Dataset,
+    hyperparameter_grid: dict,
+    cv: int,
+    n_iter: int,
+    scoring: callable = None,
+) -> dict:
     """
-Perform randomized search cross-validation for hyperparameter tuning.
+    Performs randomized grid search.
 
-    Parameters
+    Randomized Grid Search is a hyperparameter tuning technique that explores a specified
+    parameter space by randomly sampling combinations of hyperparameter values.
+
+    Parameters:
     ----------
-    model : Estimator
-        Model to validate.
+    model : Model
+        The model to perform the hyperparameter tuning.
     dataset : Dataset
-        Validation dataset.
+        The dataset to use for validation.
     hyperparameter_grid : dict
-        Dictionary with hyperparameter names as keys and lists of possible values as values.
+        Dictionary with hyperparameter names and search values.
     scoring : callable
-        Scoring function to evaluate model performance.
-    cv : int, optional
-        Number of folds for cross-validation, by default 3.
-    n_iter : int, optional
-        Number of random hyperparameter combinations to test, by default 10.
+        Scoring function to evaluate the model's performance during the hyperparameter tuning.
+    cv : int
+        Number of folds for cross-validation.
+    n_iter : int
+        Number of random hyperparameter combinations to search.
 
-    Returns
-    -------
-    dict
-        Dictionary with the results of the randomized search cross-validation. Includes:
-        - 'hyperparameters': list of hyperparameter combinations tested.
-        - 'scores': list of mean scores obtained for each combination.
-        - 'best_hyperparameters': the combination of hyperparameters with the best score.
-        - 'best_score': the best score obtained.
-
-
+    Returns:
+    ----------
+    results : dict
+        Dictionary with the results of the grid search cross-validation. Includes:
+        - 'hyperparameters': List of hyperparameter combinations tested.
+        - 'scores': List of mean scores obtained for each combination.
+        - 'best_hyperparameters': Best combination of hyperparameters.
+        - 'best_score': Best score obtained.
 """
+    # Validate hyperparameter existence in the model
+    for parameter in hyperparameter_grid:
+        if not hasattr(model, parameter):
+            raise AttributeError(f"Model {model} does not have parameter '{parameter}'.")
 
-    # Validate hyperparameter grid keys
-    for param in hyperparameter_grid.keys():
-        if not hasattr(model, param):
-            raise ValueError(f"The model does not have the parameter '{param}'.")
+    # Generate random combinations
+    combinations = random_combinations(hyperparameter_grid, n_iter)
 
-    # Generate random combinations of hyperparameters
-    param_names = list(hyperparameter_grid.keys())
-    param_values = list(hyperparameter_grid.values())
-    all_combinations = [
-        dict(zip(param_names, combo))
-        for combo in np.array(np.meshgrid(*param_values)).T.reshape(-1, len(param_names))
-    ]
-    
-    if n_iter > len(all_combinations):
-        raise ValueError("n_iter cannot be greater than the total number of hyperparameter combinations.")
-    
-    random_combinations = np.random.choice(all_combinations, size=n_iter, replace=False)
-    
     # Initialize results
     results = {
-        'hyperparameters': [],
-        'scores': [],
-        'best_hyperparameters': None,
-        'best_score': -np.inf,
+        "scores": [],
+        "hyperparameters": [],
+        "best_hyperparameters": None,
+        "best_score": -np.inf,
     }
 
     # Perform randomized search
-    for combination in random_combinations:
+    for combination in combinations:
         # Set model hyperparameters
-        for param, value in combination.items():
-            setattr(model, param, value)
+        parameters = {}
+        for parameter, value in zip(hyperparameter_grid.keys(), combination):
+            setattr(model, parameter, value)
+            parameters[parameter] = value
 
         # Perform cross-validation
-        cv_results = k_fold_cross_validation(model, dataset, scoring=scoring, cv=cv)
-        mean_score = np.mean(cv_results['test_scores'])
+        cv_results = k_fold_cross_validation(model=model, dataset=dataset, scoring=scoring, cv=cv)
+        mean_score = np.mean(cv_results["test_scores"])
 
         # Save results
-        results['hyperparameters'].append(combination)
-        results['scores'].append(mean_score)
+        results["scores"].append(mean_score)
+        results["hyperparameters"].append(parameters)
 
-        # Update best score and hyperparameters if needed
-        if mean_score > results['best_score']:
-            results['best_score'] = mean_score
-            results['best_hyperparameters'] = combination
+        # Update best score and hyperparameters if necessary
+        if mean_score > results["best_score"]:
+            results["best_score"] = mean_score
+            results["best_hyperparameters"] = parameters
 
     return results
+
+
+def random_combinations(hyperparameter_grid: dict, n_iter: int) -> list:
+    """
+    Select random combinations of hyperparameters.
+
+    Parameters:
+    ----------
+    hyperparameter_grid: dict
+        Dictionary with hyperparameter names and search values.
+    n_iter: int
+        Number of combinations to randomly select.
+
+    Returns:
+    ----------
+    random_combinations: list
+        List of randomly selected combinations of hyperparameters.
+    """
+    # Compute all possible combinations of hyperparameters
+    all_combinations = list(itertools.product(*hyperparameter_grid.values()))
+
+    # Validate n_iter
+    if n_iter > len(all_combinations):
+        raise ValueError(
+            f"n_iter ({n_iter}) cannot exceed the number of total combinations ({len(all_combinations)})."
+        )
+
+    # Select random combinations
+    random_indices = np.random.choice(len(all_combinations), n_iter, replace=False)
+    return [all_combinations[idx] for idx in random_indices]
