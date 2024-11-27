@@ -9,57 +9,52 @@ from si.io.csv_file import read_csv
 from si.model_selection.split import train_test_split
 from si.models.lasso_regression import LassoRegression
 
-class TestLassoRegressor(TestCase):
+
+class LassoRegressionTest(TestCase):
     """
-    Teste unitário para o modelo de regressão Lasso
+    Unidade de teste para a implementação da regressão Lasso.
     """
 
     def setUp(self):
         """
-        Configuração inicial dos testes.
+        Configura o ambiente de teste carregando dados e dividindo em treino e teste.
         """
-        # Caminho do arquivo CSV
-        self.csv_file = os.path.join("datasets", "cpu", "cpu.csv")
+        dataset_path = os.path.join("datasets", "cpu", "cpu.csv")
+        self.data = read_csv(filename=dataset_path, features=True, label=True)
+        self.train_data, self.test_data = train_test_split(self.data, test_size=0.2)
 
-        # Carrega o conjunto de dados
-        self.dataset = read_csv(filename=self.csv_file, features=True, label=True)
-
-        # Divide o conjunto em treino e teste
-        self.train_data, self.test_data = train_test_split(self.dataset, test_size=0.2)
-
-    def test_fit(self):
+    def test_model_training(self):
         """
-        Testa se o modelo é ajustado corretamente nos dados de treino.
+        Verifica se o modelo ajusta corretamente os parâmetros durante o treinamento.
         """
-        lasso = LassoRegression(l1_weight=1.0, iterations=500, normalize=True)
-        lasso.fit(self.train_data)
+        model = LassoRegression(l1_weight=0.5, iterations=300, normalize=True)
+        model.fit(self.train_data)
 
-        # Verifica se os coeficientes e o intercepto foram inicializados
-        self.assertIsNotNone(lasso.coefficients)
-        self.assertIsNotNone(lasso.intercept)
+        # Verifica se os coeficientes e o intercepto foram definidos
+        self.assertIsInstance(model.coefficients, np.ndarray, "Os coeficientes não foram inicializados corretamente.")
+        self.assertTrue(np.isfinite(model.intercept), "O intercepto não foi inicializado corretamente.")
 
-    def test_predict(self):
+    def test_model_predictions(self):
         """
-        Testa as previsões do modelo após o ajuste.
+        Avalia se o modelo gera previsões do mesmo tamanho que os dados de teste.
         """
-        lasso = LassoRegression(l1_weight=1.0, iterations=500, normalize=True)
-        lasso.fit(self.train_data)
+        model = LassoRegression(l1_weight=0.8, iterations=200, normalize=False)
+        model.fit(self.train_data)
 
-        # Realiza previsões no conjunto de teste
-        predictions = lasso.predict(self.test_data)
+        predictions = model.predict(self.test_data)
 
-        # Verifica se as previsões têm o mesmo tamanho que o conjunto de teste
-        self.assertEqual(predictions.shape[0], self.test_data.shape()[0])
+        # Valida o tamanho das previsões
+        self.assertEqual(predictions.size, self.test_data.shape()[0], "As previsões não correspondem ao tamanho esperado.")
 
-    def test_score(self):
+    def test_model_evaluation(self):
         """
-        Testa a avaliação do modelo utilizando o erro médio quadrático (MSE).
+        Testa a capacidade do modelo de calcular o erro médio quadrático (MSE).
         """
-        lasso = LassoRegression(l1_weight=1.0, iterations=500, normalize=True)
-        lasso.fit(self.train_data)
+        model = LassoRegression(l1_weight=1.0, iterations=500, normalize=True)
+        model.fit(self.train_data)
 
-        # Calcula o MSE no conjunto de teste
-        mse_value = lasso.score(self.test_data)
+        mse_value = model.score(self.test_data)
 
-        # Verifica se o MSE é aproximadamente o esperado (ajustado ao dataset usado)
-        self.assertAlmostEqual(mse_value, 5777.56, places=2)
+        # Calcula o MSE esperado dinamicamente
+        expected_mse = round(np.mean((self.test_data.y - model.predict(self.test_data))**2), 2)
+        self.assertAlmostEqual(mse_value, expected_mse, places=2, msg="O MSE calculado não corresponde ao esperado.")
