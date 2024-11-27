@@ -3,171 +3,167 @@ from si.base.model import Model
 from si.data.dataset import Dataset
 from si.metrics.mse import mse
 
-class LassoRegressor(Model):
+
+class LassoRegression(Model):
     """
-    Modelo de Regressão Lasso utilizando regularização L1.
-    Este método reduz coeficientes menos importantes, tornando o modelo mais simples e interpretável.
+    Regressão Lasso com regularização L1 para ajustar coeficientes.
     """
 
-    def __init__(self, l1_weight: float = 1.0, iterations: int = 1000, tolerance: int = 5, normalize: bool = True, **kwargs):
+    def __init__(self, l1_penalty: float = 1, max_iter: int = 1000, patience: int = 5, scale: bool = True, **kwargs):
         """
-        Inicializa o modelo de regressão Lasso.
+        Inicializa o modelo Lasso Regression.
 
         Parâmetros:
-        -----------
-        l1_weight : float
-            O peso da penalização L1 no modelo.
-        iterations : int
-            Número máximo de iterações para o ajuste.
-        tolerance : int
-            Quantidade de iterações sem melhoria antes de parar.
-        normalize : bool
+        ----------
+        l1_penalty : float
+            Parâmetro de regularização L1.
+        max_iter : int
+            Número máximo de iterações.
+        patience : int
+            Número de iterações sem melhora antes de interromper.
+        scale : bool
             Indica se os dados devem ser normalizados.
         """
         
         super().__init__(**kwargs)
-        self.l1_weight = l1_weight
-        self.iterations = iterations
-        self.tolerance = tolerance
-        self.normalize = normalize
+        self.l1_penalty = l1_penalty
+        self.max_iter = max_iter
+        self.patience = patience
+        self.scale = scale
 
         # Atributos do modelo
-        self.coefficients = None
-        self.intercept = None
-        self.data_mean = None
-        self.data_std = None
-        self.history = {}
+        self.theta = None
+        self.theta_zero = None
+        self.mean = None
+        self.std = None
+        self.cost_history = {}
 
-    def fit(self, dataset: Dataset) -> 'LassoRegressor':
+    def _fit(self, dataset: Dataset) -> 'LassoRegression':
         """
-        Ajusta o modelo aos dados utilizando um método iterativo.
+        Ajusta o modelo aos dados fornecidos.
 
         Parâmetros:
-        -----------
+        ----------
         dataset : Dataset
-            O conjunto de dados de entrada.
+            Conjunto de dados de entrada.
 
         Retorna:
-        --------
-        self : LassoRegressor
+        -------
+        self : LassoRegression
             O modelo ajustado.
         """
-        # Normalização dos dados
-        if self.normalize:
-            self.data_mean = np.mean(dataset.X, axis=0)
-            self.data_std = np.std(dataset.X, axis=0)
-            X = (dataset.X - self.data_mean) / self.data_std
+        # Normaliza os dados, se necessário
+        if self.scale:
+            self.mean, self.std = dataset.X.mean(axis=0), dataset.X.std(axis=0)
+            X = (dataset.X - self.mean) / (self.std + 1e-8)  # Evita divisão por zero
         else:
             X = dataset.X
 
-        y = dataset.y
-        num_samples, num_features = X.shape
+        m, n = X.shape
 
-        # Inicialização dos parâmetros
-        self.coefficients = np.zeros(num_features)
-        self.intercept = 0
+        # Inicializa os parâmetros
+        self.theta = np.zeros(n)
+        self.theta_zero = 0
 
-        no_improve_counter = 0  # Para controle de parada antecipada
+        early_stopping_counter = 0
+        for iteration in range(self.max_iter):
+            y_pred = np.dot(X, self.theta) + self.theta_zero
 
-        for iteration in range(self.iterations):
-            # Previsões atuais
-            y_pred = np.dot(X, self.coefficients) + self.intercept
+            # Atualiza o intercepto
+            self.theta_zero = np.mean(dataset.y - y_pred)
 
-            # Atualiza o intercepto (termo livre)
-            self.intercept = np.mean(y - np.dot(X, self.coefficients))
+            # Atualiza os coeficientes
+            for j in range(n):
+                X_feature = X[:, j]
+                residual = dataset.y - (y_pred - X_feature * self.theta[j])
+                gradient = np.dot(X_feature, residual) / m
+                self.theta[j] = self._apply_soft_threshold(gradient, self.l1_penalty) / (np.dot(X_feature, X_feature) / m)
 
-            # Atualiza cada coeficiente separadamente
-            for feature_idx in range(num_features):
-                # Remove a contribuição da feature atual
-                residual = y - (np.dot(X, self.coefficients) - X[:, feature_idx] * self.coefficients[feature_idx]) - self.intercept
-                gradient = np.dot(X[:, feature_idx], residual) / num_samples
+            # Calcula o custo atual
+            cost = self.cost(dataset)
+            self.cost_history[iteration] = cost
 
-                # Aplica o método de thresholding para L1
-                self.coefficients[feature_idx] = self._apply_threshold(gradient, self.l1_weight) / np.sum(X[:, feature_idx]**2)
-
-            # Calcula o custo para verificar a melhoria
-            current_cost = self.compute_cost(dataset)
-            self.history[iteration] = current_cost
-
-            if iteration > 0 and self.history[iteration] >= self.history[iteration - 1]:
-                no_improve_counter += 1
-                if no_improve_counter >= self.tolerance:
+            # Verifica se houve melhora no custo
+            if iteration > 0 and cost >= self.cost_history[iteration - 1]:
+                early_stopping_counter += 1
+                if early_stopping_counter >= self.patience:
                     break
             else:
-                no_improve_counter = 0
+                early_stopping_counter = 0
 
         return self
 
-    def predict(self, dataset: Dataset) -> np.ndarray:
+    def cost(self, dataset: Dataset) -> float:
         """
-        Realiza previsões para novos dados.
+        Calcula o custo do modelo.
 
         Parâmetros:
-        -----------
+        ----------
         dataset : Dataset
-            Dados de entrada para prever os valores.
+            Dados de entrada para cálculo do custo.
 
         Retorna:
-        --------
-        predictions : np.ndarray
-            Valores previstos pelo modelo.
-        """
-        X = (dataset.X - self.data_mean) / self.data_std if self.normalize else dataset.X
-        return np.dot(X, self.coefficients) + self.intercept
-
-    def compute_cost(self, dataset: Dataset) -> float:
-        """
-        Calcula a função de custo, incluindo o termo de regularização L1.
-
-        Parâmetros:
-        -----------
-        dataset : Dataset
-            Dados de entrada para o cálculo do custo.
-
-        Retorna:
-        --------
+        -------
         cost : float
-            Valor da função de custo.
+            Valor do custo (erro quadrático médio + regularização L1).
         """
         y_pred = self.predict(dataset)
-        return (1 / (2 * len(dataset.y))) * np.sum((dataset.y - y_pred) ** 2) + self.l1_weight * np.sum(np.abs(self.coefficients))
+        mse_error = np.mean((dataset.y - y_pred) ** 2)
+        l1_term = self.l1_penalty * np.sum(np.abs(self.theta))
+        return mse_error / 2 + l1_term
 
-    def score(self, dataset: Dataset) -> float:
+    def _predict(self, dataset: Dataset) -> np.ndarray:
         """
-        Avalia o modelo utilizando o erro médio quadrático (MSE).
+        Faz previsões para novos dados.
 
         Parâmetros:
-        -----------
+        ----------
         dataset : Dataset
-            Dados de entrada para avaliação.
+            Dados de entrada.
 
         Retorna:
-        --------
-        mse : float
-            Erro médio quadrático do modelo.
+        -------
+        predictions : np.ndarray
+            Previsões geradas pelo modelo.
         """
-        predictions = self.predict(dataset)
+        X = (dataset.X - self.mean) / (self.std + 1e-8) if self.scale else dataset.X
+        return np.dot(X, self.theta) + self.theta_zero
+
+    def _score(self, dataset: Dataset, predictions: np.ndarray) -> float:
+        """
+        Avalia o modelo com base no erro médio quadrático (MSE).
+
+        Parâmetros:
+        ----------
+        dataset : Dataset
+            Conjunto de dados para avaliação.
+        predictions : np.ndarray
+            Previsões do modelo.
+
+        Retorna:
+        -------
+        mse : float
+            Erro médio quadrático.
+        """
+
         return mse(dataset.y, predictions)
 
-    def _apply_threshold(self, value: float, penalty: float) -> float:
+    def _apply_soft_threshold(self, value: float, penalty: float) -> float:
         """
         Aplica a técnica de soft thresholding para regularização L1.
 
         Parâmetros:
-        -----------
+        ----------
         value : float
-            Valor residual para o coeficiente.
+            Gradiente calculado para um coeficiente.
         penalty : float
             Penalização L1.
 
         Retorna:
-        --------
+        -------
         thresholded_value : float
-            Valor após aplicação da regularização.
+            Valor ajustado após a regularização.
         """
-        if value > penalty:
-            return value - penalty
-        elif value < -penalty:
-            return value + penalty
-        else:
-            return 0.0
+        if abs(value) > penalty:
+            return np.sign(value) * (abs(value) - penalty)
+        return 0.0
