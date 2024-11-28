@@ -78,7 +78,11 @@ Stacking classifier that combines multiple models using a final model.
         final_dataset = Dataset(X = predicitions, y=None)
 
         return self.final_models.predict(final_dataset)
-    
+        final_predictions = np.apply_along_axis(lambda x: np.bincount(x.astype(int)).argmax(), axis=1, arr=all_predictions)
+        return np.array(final_predictions)  # Certifique-se de que o retorno seja um array
+       
+
+
 
 
     def _score(self, dataset: Dataset, predictions: np.ndarray) -> float:
