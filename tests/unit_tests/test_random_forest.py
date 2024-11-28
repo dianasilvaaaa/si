@@ -1,4 +1,3 @@
-import numpy as np
 from unittest import TestCase
 from datasets import DATASETS_PATH
 import os

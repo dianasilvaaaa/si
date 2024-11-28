@@ -1,8 +1,4 @@
 import numpy as np
-
-from si.base.estimator import Estimator
-from si.base.model import Model
-from si.data.dataset import Dataset
 from si.metrics.accuracy import accuracy
 from si.models.decision_tree_classifier import DecisionTreeClassifier
 
@@ -47,7 +43,6 @@ random seed to use to assure reproducibility
 
 
     def _fit(self, dataset: Dataset) -> 'RandomForestClassifier':
-        return super()._fit(dataset)
     
         """
 train the decision trees of the random forest
@@ -86,10 +81,7 @@ Parameters
 
         return self
     
-
     def _predict(self, dataset) -> np.ndarray:
-        
-
         """
 Predict the class labels using the trained random forest.
         
