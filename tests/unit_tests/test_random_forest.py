@@ -56,3 +56,4 @@ class TestRandomForest(TestCase):
         # Verifica se a precisão está próxima do valor esperado
         self.assertEqual(round(accuracy_, 2), 0.95)
         
+
