@@ -1,7 +1,5 @@
 import numpy as np
 from si.metrics.accuracy import accuracy
-from si.data.dataset import Dataset
-from si.base.model import Model
 from si.statistics.sigmoid_function import sigmoid_function
 
 
@@ -25,7 +23,6 @@ class LogisticRegression(Model):
         scale: bool
             - Whether to scale the dataset or not. By default, is set to True.        
         """
-
         # parameters
         self.l2_penalty = l2_penalty
         self.alpha = alpha
@@ -39,9 +36,6 @@ class LogisticRegression(Model):
         self.mean = None
         self.std = None
         self.cost_history = {}
-
-        pass
-
 
     def _fit(self, dataset: Dataset) -> 'LogisticRegression':
         """
@@ -74,7 +68,6 @@ class LogisticRegression(Model):
 
         i = 0
         early_stopping = 0
-        
         # gradient descent
         while i < self.max_iter and early_stopping < self.patience:
             # predicted y
@@ -115,7 +108,6 @@ class LogisticRegression(Model):
             The predictions of the dataset
         """
         
-        # sclaing the dataset if necessary
         X = (dataset.X - self.mean) / self.std if self.scale else dataset.X
 
         # predict the output using the logistic regression model
@@ -141,9 +133,6 @@ class LogisticRegression(Model):
         ----------
         dataset: Dataset
             The dataset to compute the MSE on
-
-        predictions: np.ndarray
-            Predictions
 
         Returns
         -------
@@ -176,5 +165,3 @@ class LogisticRegression(Model):
         regularization_term = self.l2_penalty / (2 * dataset.shape()[0]) * np.sum(self.theta ** 2)
         error_term = -1/dataset.shape()[0] * np.sum(dataset.y * np.log(y_pred) + (1 - dataset.y) * np.log(1 - y_pred))
 
-
-        return error_term + regularization_term

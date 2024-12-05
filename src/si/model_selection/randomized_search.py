@@ -1,18 +1,13 @@
 import numpy as np
 from si.base.model import Model
 from si.data.dataset import Dataset
-import itertools
 from si.model_selection.cross_validate import k_fold_cross_validation
-from si.model_selection.randomized_search import random_combinations
 
 def randomized_search_cv(
     model, dataset, hyperparameter_grid, cv, n_iter, scoring=None
 ):
     """
     Performs randomized grid search.
-
-    Randomized Grid Search is a hyperparameter tuning technique that explores a specified
-    parameter space by randomly sampling combinations of hyperparameter values.
 
     Parameters:
     ----------
@@ -82,7 +77,6 @@ def randomized_search_cv(
             results["best_score"] = mean_score
             results["best_hyperparameters"] = parameters
 
-    return results
 
 def random_combinations(hyperparameter_grid: dict, n_iter: int) -> list:
     """
@@ -100,10 +94,8 @@ def random_combinations(hyperparameter_grid: dict, n_iter: int) -> list:
     random_combinations: list
         List of randomly selected combinations of hyperparameters.
     """
-    # Compute all possible combinations of hyperparameters
     all_combinations = list(itertools.product(*hyperparameter_grid.values()))
 
-    # Validate n_iter
     if n_iter > len(all_combinations):
         raise ValueError(
             f"n_iter ({n_iter}) cannot exceed the number of total combinations ({len(all_combinations)})."

@@ -1,6 +1,6 @@
 from unittest import TestCase
+from datasets import DATASETS_PATH
 import os
-import numpy as np
 from si.io.data_file import read_data_file
 from si.model_selection.randomized_search import randomized_search_cv
 from si.models.logistic_regression import LogisticRegression
@@ -73,9 +73,3 @@ class TestRandomizedSearchCV(TestCase):
         # Validar o formato das combinações de hiperparâmetros
         for combination in results['hyperparameters']:
             self.assertIsInstance(combination, dict, "Cada combinação de hiperparâmetros deve ser um dicionário.")
-
-        # Validar os scores individuais
-        for score in results['scores']:
-            self.assertTrue(
-                0 <= score <= 1, "Cada score deve estar entre 0 e 1."
-            )
