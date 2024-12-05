@@ -12,41 +12,45 @@ def randomized_search_cv(model,
                          n_iter: int = 10,
                          test_size: float = 0.3) -> Dict[str, Tuple[str, Union[int, float]]]:
     """
-    Perform a randomized search over hyperparameters and evaluate model performance.
+    Realiza uma busca aleatória sobre os hiperparâmetros e avalia o desempenho do modelo.
 
-    param model: Model to validate
-    param dataset: Validation dataset
-    param parameter_distribution: Dictionary with hyperparameter names and their possible values
-    param scoring: Scoring function
-    param cv: Number of folds
-    param n_iter: Number of random hyperparameter combinations to test
-    param test_size: Test set size
+    Parâmetros:
+    ----------
+    model: Modelo a ser validado.
+    dataset: Conjunto de dados para validação.
+    parameter_distribution: Dicionário com os nomes dos hiperparâmetros e seus possíveis valores.
+    scoring: Função para avaliar o modelo.
+    cv: Número de divisões (folds) na validação cruzada.
+    n_iter: Número de combinações aleatórias de hiperparâmetros a serem testadas.
+    test_size: Tamanho do conjunto de teste.
 
-    return: Dictionary with the results of the randomized search cross-validation.
+    Retorno:
+    ----------
+    Um dicionário com os resultados da busca aleatória e validação cruzada.
     """
     scores = {'parameters': [], 'seed': [], 'train': [], 'test': []}
 
-    # Check if parameters exist in the model
+    # Verifica se os parâmetros existem no modelo
     for parameter in parameter_distribution:
         if not hasattr(model, parameter):
-            raise AttributeError(f"The model {model} does not have parameter {parameter}.")
+            raise AttributeError(f"O modelo {model} não possui o parâmetro {parameter}.")
 
-    # Generate n_iter random combinations of parameters
+    # Gera n_iter combinações aleatórias de parâmetros
     for _ in range(n_iter):
         random_state = np.random.randint(0, 1000)
         scores['seed'].append(random_state)
 
-        # Randomly select parameters
+        # Seleciona os parâmetros de forma aleatória
         parameters = {param: np.random.choice(values) for param, values in parameter_distribution.items()}
 
-        # Set the model's parameters
+        # Configura os parâmetros no modelo
         for param, value in parameters.items():
             setattr(model, param, value)
 
-        # Perform cross-validation and get the scores
+        # Realiza a validação cruzada e obtém as métricas
         score = k_fold_cross_validation(model=model, dataset=dataset, scoring=scoring, cv=cv)
 
-        # Store the results
+        # Armazena os resultados
         scores['parameters'].append(parameters)
         scores['train'].append(score)
         scores['test'].append(score)
@@ -56,63 +60,63 @@ def randomized_search_cv(model,
 
 def random_combinations(hyperparameter_grid: dict, n_iter: int) -> list:
     """
-    Select random combinations of hyperparameters.
+    Seleciona combinações aleatórias de hiperparâmetros.
 
-    Parameters:
+    Parâmetros:
     ----------
     hyperparameter_grid: dict
-        Dictionary with hyperparameter names and search values.
+        Dicionário com os nomes dos hiperparâmetros e os valores de busca.
     n_iter: int
-        Number of combinations to randomly select.
+        Número de combinações a serem selecionadas aleatoriamente.
 
-    Returns:
+    Retorno:
     ----------
     random_combinations: list
-        List of randomly selected combinations of hyperparameters.
+        Lista de combinações aleatórias de hiperparâmetros.
     """
     all_combinations = list(itertools.product(*hyperparameter_grid.values()))
     
     if n_iter > len(all_combinations):
-        raise ValueError(f"n_iter ({n_iter}) cannot be greater than the total number of combinations ({len(all_combinations)}).")
+        raise ValueError(f"n_iter ({n_iter}) não pode ser maior que o número total de combinações ({len(all_combinations)}).")
 
-    # Randomly select n_iter combinations
+    # Seleciona aleatoriamente n_iter combinações
     selected_indices = np.random.choice(len(all_combinations), n_iter, replace=False)
     return [all_combinations[i] for i in selected_indices]
 
 
 def randomized_search_cv_v2(model, dataset, hyperparameter_grid, scoring=None, cv=3, n_iter=10, test_size=0.3):
     """
-    Perform randomized hyperparameter search using cross-validation, adapted for grid-based search.
-    
-    Parameters:
+    Realiza uma busca aleatória de hiperparâmetros utilizando validação cruzada, adaptada para busca baseada em grid.
+
+    Parâmetros:
     ----------
-    model : Model
-        The model to be tuned.
+    model : Modelo
+        O modelo a ser ajustado.
     dataset : Dataset
-        The dataset for cross-validation.
+        O conjunto de dados para validação cruzada.
     hyperparameter_grid : dict
-        A dictionary containing the hyperparameters and their search space.
-    scoring : callable, optional
-        A function for scoring the model's performance.
+        Um dicionário contendo os hiperparâmetros e seus valores possíveis.
+    scoring : callable, opcional
+        Uma função para avaliar o desempenho do modelo.
     cv : int
-        Number of cross-validation folds.
+        Número de divisões (folds) na validação cruzada.
     n_iter : int
-        Number of random hyperparameter combinations to test.
-    
-    Returns:
+        Número de combinações aleatórias de hiperparâmetros a serem testadas.
+
+    Retorno:
     ----------
     results : dict
-        Dictionary with results from the randomized search.
+        Dicionário com os resultados da busca aleatória.
     """
-    # Check if the model has the parameters specified
+    # Verifica se o modelo possui os parâmetros especificados
     for parameter in hyperparameter_grid:
         if not hasattr(model, parameter):
-            raise AttributeError(f"The model {model} does not have the parameter '{parameter}'.")
+            raise AttributeError(f"O modelo {model} não possui o parâmetro '{parameter}'.")
 
-    # Generate random combinations of hyperparameters
+    # Gera combinações aleatórias de hiperparâmetros
     combinations = random_combinations(hyperparameter_grid, n_iter)
 
-    # Initialize results dictionary
+    # Inicializa o dicionário de resultados
     results = {
         "scores": [],
         "hyperparameters": [],
@@ -120,27 +124,28 @@ def randomized_search_cv_v2(model, dataset, hyperparameter_grid, scoring=None, c
         "best_score": -np.inf,
     }
 
-    # Iterate over random combinations
+    # Itera sobre as combinações aleatórias
     for combination in combinations:
         hyperparameters = dict(zip(hyperparameter_grid.keys(), combination))
 
-        # Set the hyperparameters in the model
+        # Configura os hiperparâmetros no modelo
         for param, value in hyperparameters.items():
             setattr(model, param, value)
 
-        # Perform k-fold cross-validation
+        # Realiza a validação cruzada K-fold
         cv_results = k_fold_cross_validation(model=model, dataset=dataset, scoring=scoring, cv=cv)
 
-        # Calculate mean score
+        # Calcula a pontuação média
         mean_score = np.mean(cv_results if isinstance(cv_results, list) else cv_results.get("test_scores", []))
 
-        # Store the hyperparameters and score
+        # Armazena os hiperparâmetros e a pontuação
         results['hyperparameters'].append(hyperparameters)
         results['scores'].append(mean_score)
 
-        # Update best score and hyperparameters
+        # Atualiza os melhores hiperparâmetros e a melhor pontuação
         if mean_score > results['best_score']:
             results['best_score'] = mean_score
             results['best_hyperparameters'] = hyperparameters
 
     return results
+
