@@ -45,11 +45,11 @@ Stacking classifier that combines multiple models using a final model.
             model.fit(dataset)
 
         #obtem as previsões dos modelos iniciais
-        predictions = np.column_stack([model.predict(dataset) for model in self.models])
+        predictions = np.column_stack([model.predict(dataset) for model in self.models]) # Essas previsões são organizadas em colunas (matriz predictions), onde cada coluna representa as previsões de um modelo.
 
         ##treina o modelo final com as previsões dos modelos iniciais
         final_dataset = Dataset(X = predictions, y = dataset.y)
-        self.final_models.fit(final_dataset)
+        self.final_models.fit(final_dataset) #O modelo final é treinado para combinar essas previsões em uma decisão final
 
         return self
     
@@ -72,14 +72,14 @@ Stacking classifier that combines multiple models using a final model.
 """
 
         #obtem as previsões dos modelos iniciais
-        predicitions = np.column_stack([model.predict(dataset) for model in self.models])
+        predicitions = np.column_stack([model.predict(dataset) for model in self.models]) # as previsões dos modelos base são combinadas numa matriz
 
         #Obtem as previsões finais utilizando o modelo final
         final_dataset = Dataset(X = predicitions, y=None)
 
+# As previsões dos modelos base são usadas como entrada para o modelo final, que faz a previsão final
         return self.final_models.predict(final_dataset)
-        final_predictions = np.apply_along_axis(lambda x: np.bincount(x.astype(int)).argmax(), axis=1, arr=all_predictions)
-        return np.array(final_predictions)  # Certifique-se de que o retorno seja um array
+        
        
 
 
@@ -106,4 +106,4 @@ Stacking classifier that combines multiple models using a final model.
 """
 
         return accuracy(dataset.y, predictions)
-    
+    #Calcula a acurácia comparando os rótulos verdadeiros (dataset.y) com as previsões geradas.
