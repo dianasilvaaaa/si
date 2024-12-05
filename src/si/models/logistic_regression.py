@@ -1,29 +1,52 @@
 import numpy as np
+
+from si.base.model import Model
+from si.data.dataset import Dataset
 from si.metrics.accuracy import accuracy
 from si.statistics.sigmoid_function import sigmoid_function
 
 
 class LogisticRegression(Model):
+    """
+    The LogisticRegression is a logistic model using the L2 regularization.
+    This model solves the logistic regression problem using an adapted Gradient Descent technique
 
-    def __init__(
-            self, l2_penalty: float = 1, alpha: float = 0.001,
-            max_iter: int = 1000, patience: int = 5, scale: bool = True, **kwargs):
-        
+    Parameters
+    ----------
+    l2_penalty: float
+        The L2 regularization parameter
+    alpha: float
+        The learning rate
+    max_iter: int
+        The maximum number of iterations
+
+    Attributes
+    ----------
+    theta: np.array
+        The model parameters, namely the coefficients of the logistic model.
+        For example, sigmoid(x0 * theta[0] + x1 * theta[1] + ...)
+    theta_zero: float
+        The intercept of the logistic model
+    """
+    def __init__(self, l2_penalty: float = 1, alpha: float = 0.001, max_iter: int = 1000, patience: int = 5,
+                 scale: bool = True, **kwargs):
         """
+
         Parameters
         ----------
         l2_penalty: float
-            - The L2 regularization parameter. By default, it's set to 1.
+            The L2 regularization parameter
         alpha: float
-            - The learning rate. By default, it's set to 0.001.
+            The learning rate
         max_iter: int
-            - The maximum number of iterations. By default, it's set to 1000.
+            The maximum number of iterations
         patience: int
-            - The number of iterations without improvement before stopping the training .By default, it's set to 5.
+            The number of iterations without improvement before stopping the training
         scale: bool
-            - Whether to scale the dataset or not. By default, is set to True.        
+            Whether to scale the dataset or not
         """
         # parameters
+        super().__init__(**kwargs)
         self.l2_penalty = l2_penalty
         self.alpha = alpha
         self.max_iter = max_iter
@@ -48,7 +71,7 @@ class LogisticRegression(Model):
 
         Returns
         -------
-        self: RidgeRegression
+        self: LogisticRegression
             The fitted model
         """
         if self.scale:
@@ -71,15 +94,18 @@ class LogisticRegression(Model):
         # gradient descent
         while i < self.max_iter and early_stopping < self.patience:
             # predicted y
-            y_pred = sigmoid_function(np.dot(X, self.theta) + self.theta_zero)
+            y_pred = np.dot(X, self.theta) + self.theta_zero
 
-            # computing and updating the gradient with the learning rate
+            # apply sigmoid function
+            y_pred = sigmoid_function(y_pred)
+
+            # compute the gradient using the learning rate
             gradient = (self.alpha / m) * np.dot(y_pred - dataset.y, X)
 
-            # computing the penalty
+            # compute the penalty
             penalization_term = self.theta * (1 - self.alpha * (self.l2_penalty / m))
 
-            # updating the model parameters
+            # update the model parameters
             self.theta = penalization_term - gradient
             self.theta_zero = self.theta_zero - (self.alpha * (1 / m)) * np.sum(y_pred - dataset.y)
 
@@ -109,23 +135,15 @@ class LogisticRegression(Model):
         """
         
         X = (dataset.X - self.mean) / self.std if self.scale else dataset.X
+        predictions = sigmoid_function(np.dot(X, self.theta) + self.theta_zero)
 
-        # predict the output using the logistic regression model
-        prediction = sigmoid_function(np.dot(X, self.theta) + self.theta_zero)
+        # convert the predictions to 0 or 1 (binarization)
+        mask = predictions >= 0.5
+        predictions[mask] = 1
+        predictions[~mask] = 0
+        return predictions
 
-        # converts the probabilities to binary values
-        ## converting to 0
-        indices_0 = np.where(prediction < 0.5)[0]
-        prediction[indices_0] = 0
-
-        ## converting to 1
-        
-        indices_1 = np.where(prediction >= 0.5)[0]
-        prediction[indices_1] = 1
-
-        return prediction
-
-    def _score(self, dataset: Dataset, predictions: np.ndarray) -> float:
+    def score(self, dataset: Dataset) -> float:
         """
         Compute the Mean Square Error of the model on the dataset
 
@@ -139,8 +157,8 @@ class LogisticRegression(Model):
         mse: float
             The Mean Square Error of the model
         """
-        return accuracy(dataset.y, predictions)
-    
+        y_pred = self.predict(dataset)
+        return accuracy(dataset.y, y_pred)
 
     def cost(self, dataset: Dataset) -> float:
         """
@@ -156,12 +174,56 @@ class LogisticRegression(Model):
         cost: float
             The cost function of the model
         """
+        predictions = sigmoid_function(np.dot(dataset.X, self.theta) + self.theta_zero)
+        cost = (dataset.y * np.log(predictions)) + (1 - dataset.y) * np.log(1 - predictions)
+        cost = np.sum(cost) * (-1 / dataset.shape()[0])
+        cost = cost + (self.l2_penalty * np.sum(self.theta ** 2) / (2 * dataset.shape()[0]))
+        return cost
+    
+    def _score(self, dataset: Dataset, predictions: np.ndarray) -> float:
+        """
+        Compute the Mean Square Error of the model on the dataset
 
-        # feature predition
-        y_pred = self.predict(dataset)
+        Parameters
+        ----------
+        dataset: Dataset
+            The dataset to compute the accuracy on
+
+        predictions: np.ndarray
+            Predictions
+
+        Returns
+        -------
+        mse: float
+            The Mean Square Error of the model
+        """
+        return accuracy(dataset.y, predictions)
 
 
-        # compute the cost function with L2 regularization
-        regularization_term = self.l2_penalty / (2 * dataset.shape()[0]) * np.sum(self.theta ** 2)
-        error_term = -1/dataset.shape()[0] * np.sum(dataset.y * np.log(y_pred) + (1 - dataset.y) * np.log(1 - y_pred))
+if __name__ == '__main__':
+    # import dataset
+    from si.data.dataset import Dataset
+    from si.model_selection.split import train_test_split
 
+    # load and split the dataset
+    dataset_ = Dataset.from_random(600, 100, 2)
+    dataset_train, dataset_test = train_test_split(dataset_, test_size=0.2)
+
+    # fit the model
+    model = LogisticRegression(l2_penalty=1, alpha=0.001, max_iter=1000)
+    model.fit(dataset_train)
+
+    print(model.theta)
+    print(model.theta_zero)
+
+    print(model.predict(dataset_test))
+
+    # compute the score
+    score = model.score(dataset_test)
+    print(f"Score: {score}")
+
+    # plot the cost history
+    import matplotlib.pyplot as plt
+
+    plt.plot(list(model.cost_history.keys()), list(model.cost_history.values()))
+    plt.show()
