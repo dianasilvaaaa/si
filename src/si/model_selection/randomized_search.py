@@ -2,16 +2,12 @@ import numpy as np
 from si.base.model import Model
 from si.data.dataset import Dataset
 import itertools
-#from si.model_selection.cross_validate import k_fold_cross_validation
+from si.model_selection.cross_validate import k_fold_cross_validation
+from si.model_selection.randomized_search import random_combinations
 
 def randomized_search_cv(
-    model: Model,
-    dataset: Dataset,
-    hyperparameter_grid: dict,
-    cv: int,
-    n_iter: int,
-    scoring: callable = None,
-) -> dict:
+    model, dataset, hyperparameter_grid, cv, n_iter, scoring=None
+):
     """
     Performs randomized grid search.
 
@@ -41,7 +37,7 @@ def randomized_search_cv(
         - 'scores': List of mean scores obtained for each combination.
         - 'best_hyperparameters': Best combination of hyperparameters.
         - 'best_score': Best score obtained.
-"""
+    """
     # Validate hyperparameter existence in the model
     for parameter in hyperparameter_grid:
         if not hasattr(model, parameter):
@@ -68,19 +64,25 @@ def randomized_search_cv(
 
         # Perform cross-validation
         cv_results = k_fold_cross_validation(model=model, dataset=dataset, scoring=scoring, cv=cv)
-        mean_score = np.mean(cv_results["test_scores"])
 
-        # Save results
+        # Process results to compute mean score
+        if isinstance(cv_results, list):  # cv_results is a list of scores
+            mean_score = np.mean(cv_results)
+        elif isinstance(cv_results, dict) and "test_scores" in cv_results:
+            mean_score = np.mean(cv_results["test_scores"])
+        else:
+            raise ValueError("Unexpected format of cv_results returned by k_fold_cross_validation.")
+
+        # Store the results
         results["scores"].append(mean_score)
         results["hyperparameters"].append(parameters)
 
-        # Update best score and hyperparameters if necessary
+        # Update best hyperparameters and score
         if mean_score > results["best_score"]:
             results["best_score"] = mean_score
             results["best_hyperparameters"] = parameters
 
     return results
-
 
 def random_combinations(hyperparameter_grid: dict, n_iter: int) -> list:
     """
@@ -110,3 +112,4 @@ def random_combinations(hyperparameter_grid: dict, n_iter: int) -> list:
     # Select random combinations
     random_indices = np.random.choice(len(all_combinations), n_iter, replace=False)
     return [all_combinations[idx] for idx in random_indices]
+

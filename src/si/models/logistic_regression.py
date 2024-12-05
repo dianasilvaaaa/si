@@ -127,9 +127,9 @@ class LogisticRegression(Model):
         prediction[indices_0] = 0
 
         ## converting to 1
-        prediction[indices_1] = 1
+        
         indices_1 = np.where(prediction >= 0.5)[0]
-
+        prediction[indices_1] = 1
 
         return prediction
 

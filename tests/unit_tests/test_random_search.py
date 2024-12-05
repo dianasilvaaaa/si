@@ -36,9 +36,9 @@ class TestRandomizedSearchCV(TestCase):
             model=model,
             dataset=self.dataset,
             hyperparameter_grid=hyperparameter_grid,
-            scoring=accuracy,
             cv=3,
             n_iter=10,
+            scoring=accuracy
         )
 
         # Logs para inspeção dos resultados
@@ -79,4 +79,3 @@ class TestRandomizedSearchCV(TestCase):
             self.assertTrue(
                 0 <= score <= 1, "Cada score deve estar entre 0 e 1."
             )
-
