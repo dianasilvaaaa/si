@@ -12,10 +12,10 @@ class PCA:
         n_components: int
             Número de componentes principais a serem retidos.
         """
-        self.n_components = n_components
-        self.mean = None
+        self.n_components = n_components #número de componentes principais a serem mantidos
+        self.mean = None #Média de cada atributo (usada para centralizar os dados)
         self.components = None
-        self.explained_variance = None
+        self.explained_variance = None #Fração da variância total explicada por cada componente principal
 
     def _validate_input(self, dataset: Dataset):
         """
@@ -31,13 +31,16 @@ class PCA:
         ValueError:
             Se n_components for inválido ou se o dataset for incompatível.
         """
+        # verifica se o dataset é uma instância da classe Dataset
         if not isinstance(dataset, Dataset):
             raise ValueError("A entrada deve ser uma instância de Dataset.")
 
+        # verifica se n_components é válido:maior que 0 e menor ou igual ao número de atributos  
         if self.n_components <= 0 or self.n_components > dataset.X.shape[1]:
             raise ValueError("n_components deve ser um número inteiro positivo e menor ou igual ao número de atributos.")
 
     def _fit(self, dataset: Dataset) -> "PCA":
+        # método fit ajusta o PCA ao dataset
         """
         Estima a média, os componentes principais e a variância explicada.
 
