@@ -59,16 +59,16 @@ class PCA:
         # Passo 1: Centralizar os dados
         X = dataset.X
         self.mean = np.mean(X, axis=0)
-        X_centered = X - self.mean
+        X_centered = X - self.mean # Subtrai a média de cada atributo dos dados, para garantir que os dados estejam centrados em torno da origem
 
         # Passo 2: Calcular a matriz de covariância e decomposição dos autovalores
-        matriz_covariancia = np.cov(X_centered, rowvar=False)
+        matriz_covariancia = np.cov(X_centered, rowvar=False) # Calcula a matriz de covariância para entender as relações entre os atributos
         autovalores, autovetores = np.linalg.eig(matriz_covariancia)
 
-        # Passo 3: Ordenar autovalores e autovetores em ordem decrescente
+        # Passo 3: Ordenar autovalores e autovetores em ordem decrescente de variancia
         indices_ordenados = np.argsort(autovalores)[::-1]
-        autovalores = autovalores[indices_ordenados]
-        autovetores = autovetores[:, indices_ordenados]
+        autovalores = autovalores[indices_ordenados] # Autovalores representam a variância em cada direção
+        autovetores = autovetores[:, indices_ordenados] #Autovetores são as direções principais
 
         # Passo 4: Selecionar os componentes principais
         self.components = autovetores[:, :self.n_components]
