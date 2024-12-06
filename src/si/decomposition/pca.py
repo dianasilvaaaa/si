@@ -1,7 +1,5 @@
 import numpy as np
-from si.base.transformer import Transformer
 from si.data.dataset import Dataset
-from datasets import DATASETS_PATH
 
 class PCA: 
     def _init_(self, n_components, **kwargs):
@@ -16,8 +14,6 @@ Principal Component Analysis (PCA)
             Number of principal components to retain.
 
         """
-
-        super()._init_(**kwargs)
         self.n_components = n_components
         self.mean = None
         n_components = None
