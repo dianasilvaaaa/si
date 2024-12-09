@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import copy
-
+from si.neural_networks.optimizers import Optimizer
 import numpy as np
 
 
