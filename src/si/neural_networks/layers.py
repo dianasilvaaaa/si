@@ -95,3 +95,89 @@ class DenseLayer(Layer):
         self.input = input
         self.output = np.dot(self.input, self.weights) + self.biases
         return self.output
+    
+
+######## EX 12
+
+class Dropout(Layer):
+    """
+    Dropout layer for a neural network.
+    """
+
+    def __init__(self, probability: float):
+        """
+        Initialize the dropout layer.
+
+        Parameters
+        ----------
+        probability: float
+            The dropout rate, a value between 0 and 1.
+        """
+        super().__init__()
+        self.probability = probability
+        self.mask = None
+        self.input = None
+        self.output = None
+
+    def forward_propagation(self, input: np.ndarray, training: bool) -> np.ndarray:
+        """
+        Perform forward propagation on the given input.
+
+        Parameters
+        ----------
+        input: numpy.ndarray
+            The input to the layer.
+        training: bool
+            Whether the layer is in training mode or in inference mode.
+
+        Returns
+        -------
+        numpy.ndarray
+            The output of the layer.
+        """
+        self.input = input
+        if training:
+            scaling_factor = 1 / (1 - self.probability)
+            self.mask = np.random.binomial(1, 1 - self.probability, size=input.shape)
+            self.output = input * self.mask * scaling_factor
+        else:
+            self.output = input
+        return self.output
+
+    def backward_propagation(self, error: np.ndarray) -> np.ndarray:
+        """
+        Perform backward propagation on the given error.
+
+        Parameters
+        ----------
+        error: numpy.ndarray
+            The error from the subsequent layer.
+
+        Returns
+        -------
+        numpy.ndarray
+            The propagated error to the previous layer.
+        """
+        return error * self.mask  # Only propagate error for active neurons
+
+    def output_shape(self) -> tuple:
+        """
+        Return the shape of the output.
+
+        Returns
+        -------
+        tuple
+            The shape of the output, which is the same as the input shape.
+        """
+        return self.input_shape()
+
+    def parameters(self) -> int:
+        """
+        Return the number of learnable parameters in the layer.
+
+        Returns
+        -------
+        int
+            Always returns 0 as dropout layers do not have learnable parameters.
+        """
+        return 0
