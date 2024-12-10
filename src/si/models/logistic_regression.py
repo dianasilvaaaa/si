@@ -119,7 +119,7 @@ class LogisticRegression(Model):
 
         return self
 
-    def _predict(self, dataset: Dataset) -> np.array:
+    def _predict(self, dataset: Dataset) -> np.ndarray:
         """
         Predict the output of the dataset
 
@@ -130,7 +130,7 @@ class LogisticRegression(Model):
 
         Returns
         -------
-        predictions: np.array
+        predictions: np.ndarray
             The predictions of the dataset
         """
         
@@ -142,23 +142,6 @@ class LogisticRegression(Model):
         predictions[mask] = 1
         predictions[~mask] = 0
         return predictions
-
-    def score(self, dataset: Dataset) -> float:
-        """
-        Compute the Mean Square Error of the model on the dataset
-
-        Parameters
-        ----------
-        dataset: Dataset
-            The dataset to compute the MSE on
-
-        Returns
-        -------
-        mse: float
-            The Mean Square Error of the model
-        """
-        y_pred = self.predict(dataset)
-        return accuracy(dataset.y, y_pred)
 
     def cost(self, dataset: Dataset) -> float:
         """

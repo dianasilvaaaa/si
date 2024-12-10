@@ -119,7 +119,7 @@ class RidgeRegression(Model):
 
         return self
 
-    def _predict(self, dataset: Dataset) -> np.array:
+    def _predict(self, dataset: Dataset) -> np.ndarray:
         """
         Predict the output of the dataset
 
@@ -130,7 +130,7 @@ class RidgeRegression(Model):
 
         Returns
         -------
-        predictions: np.array
+        predictions: np.ndarray
             The predictions of the dataset
         """
         X = (dataset.X - self.mean) / self.std if self.scale else dataset.X
