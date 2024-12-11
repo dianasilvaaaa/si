@@ -33,9 +33,10 @@ class PCA:
         """
         # verifica se o dataset é uma instância da classe Dataset
         if not isinstance(dataset, Dataset):
-            raise ValueError("A entrada deve ser uma instância de Dataset.")
-
+            raise ValueError("A entrada deve ser uma instância de Dataset.") # Garante que o objeto fornecido seja uma instância da classe Datase
+        
         # verifica se n_components é válido:maior que 0 e menor ou igual ao número de atributos  
+        #Garante que n_components é um valor positivo e menor ou igual ao número de atributos do dataset
         if self.n_components <= 0 or self.n_components > dataset.X.shape[1]:
             raise ValueError("n_components deve ser um número inteiro positivo e menor ou igual ao número de atributos.")
 
@@ -56,24 +57,28 @@ class PCA:
         """
         self._validate_input(dataset)
 
-        # Passo 1: Centralizar os dados
+        # Passo 1: Centralizar os dados (subtraindo a média de cada atributo)
         X = dataset.X
-        self.mean = np.mean(X, axis=0)
+        self.mean = np.mean(X, axis=0) #calcula a média de cada atributo (coluna) do dataset X ao longo das observações (linhas)
+        #axis=0 (ao longo das linhas)
         X_centered = X - self.mean # Subtrai a média de cada atributo dos dados, para garantir que os dados estejam centrados em torno da origem
 
-        # Passo 2: Calcular a matriz de covariância e decomposição dos autovalores
+        # Passo 2: Calcular a matriz de covariância dos dados centrados e efetuar a decomposição dos valores próprios
         matriz_covariancia = np.cov(X_centered, rowvar=False) # Calcula a matriz de covariância para entender as relações entre os atributos
-        autovalores, autovetores = np.linalg.eig(matriz_covariancia)
+        # rowvar=False: inversão e as variáveis estão nas colunas e as observações estão nas linhas 
+        
+        autovalores, autovetores = np.linalg.eig(matriz_covariancia) #Autovalores representam a variância explicada em cada direção dos dados.
+        #Autovetores representam as direções dos componentes principais
 
-        # Passo 3: Ordenar autovalores e autovetores em ordem decrescente de variancia
+        # Ordenar autovalores e autovetores em ordem decrescente de variancia 
         indices_ordenados = np.argsort(autovalores)[::-1]
         autovalores = autovalores[indices_ordenados] # Autovalores representam a variância em cada direção
         autovetores = autovetores[:, indices_ordenados] #Autovetores são as direções principais
 
-        # Passo 4: Selecionar os componentes principais
+        # Passo 3: Selecionar os componentes principais
         self.components = autovetores[:, :self.n_components]
 
-        # Passo 5: Calcular a variância explicada
+        # Passo 4: Calcular a variância explicada
         variancia_total = np.sum(autovalores)
         self.explained_variance = autovalores[:self.n_components] / variancia_total
 
@@ -113,13 +118,16 @@ class PCA:
             raise ValueError("O PCA deve ser ajustado antes de chamar o método transform.")
 
         # Passo 1: Centralizar os dados
-        X_centered = dataset.X - self.mean
+        X_centered = dataset.X - self.mean #Os dados devem ser centralizados novamente, usando a média calculada durante o ajuste.
 
         # Passo 2: Projetar os dados nos componentes principais
-        X_reduced = np.dot(X_centered, self.components)
+        X_reduced = np.dot(X_centered, self.components) #A projeção é feita usando o produto escalar dos dados centralizados com os componentes principais
+        #Essa projeção reduz os dados originais para o número de dimensões especificado por n_components
 
         # Passo 3: Criar um novo objeto Dataset
         return Dataset(X_reduced, features=[f"PC{i+1}" for i in range(self.n_components)], y=dataset.y)
+        #Um novo objeto Dataset é criado com os dados reduzidos.
+
 
     def fit_transform(self, dataset: Dataset) -> Dataset:
         """
@@ -137,3 +145,4 @@ class PCA:
         """
         self.fit(dataset)
         return self.transform(dataset)
+#Este método combina os passos de ajuste (fit) e projeção (transform) numa única operação. É útil para reduzir o número de chamadas no código
