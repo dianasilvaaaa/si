@@ -43,7 +43,7 @@ class SelectPercentile(Transformer):
             - Returns self instance with the F and P values for each feature calculated using the scoring function.
         """
 
-        self.F,self.p = self.score_func(dataset)
+        self.F,self.p = self.score_func(dataset) #A função score_func calcula os escores (F) e p-values (p) para todas as características.
         
         return self
     
@@ -62,20 +62,25 @@ class SelectPercentile(Transformer):
             - A new Dataset object with the selected features
         
         """
-        # calculates the threshold for the scores
+        # calculata o threshold para os scores
         threshold= np.percentile(self.F,100-self.percentile)
-        # select the features with score higher than threshold
+        # selecionar as caraterísticas com score superior ao threshold
         mask = self.F > threshold
-        # check if there is features with the same score as the threshold, the function where always returns two arrays but just the first one is necessary
+        # Verificar se existem caraterísticas com o mesmo score que o threshould
         ties = np.where(self.F == threshold)[0]
         if len(ties) != 0:
-            # calculates the maximum number of features to keep based on the given percentile
+            # calcula o número máximo de caraterísticas que podem ser mantidas sem que o número total de características selecionadas não exceda o percentual especificado.
             max_features = int (len(self.F)*self.percentile/100)
-            # select the ties that must integrate the features
-            # changes the value of these features to True in the mask
+            # seleciona os ties que devem integrar as caraterísticas
+            # Altera o valor destas caraterísticas para Verdadeiro na máscara
+            # para garantir que o número total de características selecionadas não ultrapasse o máximo permitido (max_features).
             mask[ties[: max_features -mask.sum()]] = True
 
+        #Filtra os nomes das características com base na máscara (mask).
+        #Apenas as características que têm True na máscara serão mantidas.
         features = np.array(dataset.features)[mask]
         
-        return Dataset(X=dataset.X[:, mask], y=dataset.y, features=list(features), label=dataset.label)
-    
+        return Dataset(X=dataset.X[:, mask], y=dataset.y, features=list(features), label=dataset.label) #Filtra as características e retorna um novo Dataset com os dados correspondentes
+        #Cria um novo Dataset com:
+        #Apenas as colunas de X correspondentes às características selecionadas (dataset.X[:, mask]).
+        #O alvo (y) e o rótulo do dataset (label) permanecem inalterados.
