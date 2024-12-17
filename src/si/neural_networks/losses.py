@@ -86,7 +86,7 @@ class MeanSquaredError(LossFunction):
         # To avoid the additional multiplication by -1 just swap the y_pred and y_true.
         return 2 * (y_pred - y_true) / y_true.size
 
-
+#### EX 14
 class BinaryCrossEntropy(LossFunction):
     """
     Cross entropy loss function.
