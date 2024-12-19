@@ -4,6 +4,8 @@ from si.base.transformer import Transformer
 
 class PCA:
     def __init__(self, n_components):
+# Método inicializador da classe. Define o número de componentes principais a serem retidos e inicializa outras propriedades.
+
         """
         Análise de Componentes Principais (PCA)
 
@@ -12,12 +14,15 @@ class PCA:
         n_components: int
             Número de componentes principais a serem retidos.
         """
-        self.n_components = n_components #número de componentes principais a serem mantidos
+        self.n_components = n_components #número de componentes principais que a classe deve calcular.
         self.mean = None #Média de cada atributo (usada para centralizar os dados)
-        self.components = None
+        self.components = None #Inicializa o atributo components, que armazenará os componentes principais calculados.
         self.explained_variance = None #Fração da variância total explicada por cada componente principal
 
     def _validate_input(self, dataset: Dataset):
+
+    #Método privado para validar o dataset e o número de componentes principais.
+
         """
         Valida o dataset de entrada e o parâmetro n_components.
 
@@ -36,7 +41,7 @@ class PCA:
             raise ValueError("A entrada deve ser uma instância de Dataset.") # Garante que o objeto fornecido seja uma instância da classe Datase
         
         # verifica se n_components é válido:maior que 0 e menor ou igual ao número de atributos  
-        #Garante que n_components é um valor positivo e menor ou igual ao número de atributos do dataset
+        #Verifica se o número de componentes principais é válido (maior que 0 e menor ou igual ao número de atributos do dataset).
         if self.n_components <= 0 or self.n_components > dataset.X.shape[1]:
             raise ValueError("n_components deve ser um número inteiro positivo e menor ou igual ao número de atributos.")
 
@@ -58,10 +63,12 @@ class PCA:
         self._validate_input(dataset)
 
         # Passo 1: Centralizar os dados (subtraindo a média de cada atributo)
-        X = dataset.X
+        X = dataset.X #Obtém as features do dataset.
+
         self.mean = np.mean(X, axis=0) #calcula a média de cada atributo (coluna) do dataset X ao longo das observações (linhas)
         #axis=0 (ao longo das linhas)
-        X_centered = X - self.mean # Subtrai a média de cada atributo dos dados, para garantir que os dados estejam centrados em torno da origem
+        
+        X_centered = X - self.mean # Centraliza os dados subtraindo a média.
 
         # Passo 2: Calcular a matriz de covariância dos dados centrados e efetuar a decomposição dos valores próprios
         matriz_covariancia = np.cov(X_centered, rowvar=False) # Calcula a matriz de covariância para entender as relações entre os atributos
@@ -76,11 +83,11 @@ class PCA:
         autovetores = autovetores[:, indices_ordenados] #Autovetores são as direções principais
 
         # Passo 3: Selecionar os componentes principais
-        self.components = autovetores[:, :self.n_components]
+        self.components = autovetores[:, :self.n_components] #leciona os autovetores correspondentes aos maiores autovalores.
 
         # Passo 4: Calcular a variância explicada
-        variancia_total = np.sum(autovalores)
-        self.explained_variance = autovalores[:self.n_components] / variancia_total
+        variancia_total = np.sum(autovalores) #Calcula a variância total dos dados.
+        self.explained_variance = autovalores[:self.n_components] / variancia_total #Calcula a fração de variância explicada por cada componente principal.
 
         return self
 
@@ -114,7 +121,7 @@ class PCA:
         Dataset
             Dataset transformado com os componentes principais.
         """
-        if self.components is None or self.mean is None:
+        if self.components is None or self.mean is None: #if self.components is None or self.mean is None:
             raise ValueError("O PCA deve ser ajustado antes de chamar o método transform.")
 
         # Passo 1: Centralizar os dados
@@ -124,7 +131,7 @@ class PCA:
         X_reduced = np.dot(X_centered, self.components) #A projeção é feita usando o produto escalar dos dados centralizados com os componentes principais
         #Essa projeção reduz os dados originais para o número de dimensões especificado por n_components
 
-        # Passo 3: Criar um novo objeto Dataset
+        # Passo 3: Criar um novo objeto Dataset com os dados reduzidos.
         return Dataset(X_reduced, features=[f"PC{i+1}" for i in range(self.n_components)], y=dataset.y)
         #Um novo objeto Dataset é criado com os dados reduzidos.
 
@@ -143,6 +150,6 @@ class PCA:
         Dataset
             Dataset transformado com os componentes principais.
         """
-        self.fit(dataset)
-        return self.transform(dataset)
+        self.fit(dataset) #Ajusta o modelo.
+        return self.transform(dataset) #Transforma os dados e retorna o dataset reduzido.
 #Este método combina os passos de ajuste (fit) e projeção (transform) numa única operação. É útil para reduzir o número de chamadas no código

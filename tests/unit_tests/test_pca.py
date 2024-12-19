@@ -32,14 +32,14 @@ class TestPCA(TestCase):
         #Ajusta o PCA aos mesmos dados, mas no formato do Pandas (somente as 4 primeiras colunas, que são os atributos numéricos)
 
         # Testa se a variância explicada está próxima
-        self.assertTrue(np.allclose(iris_fit.explained_variance, iris_fit_sklearn.explained_variance_ratio_))
+        self.assertTrue(np.allclose(iris_fit.explained_variance, iris_fit_sklearn.explained_variance_ratio_)) #Variância Explicada: Compara a variância explicada pelo PCA customizado e pelo scikit-learn.
         
-        # Testa o número de componentes
+        # Testa o número de componentes garantindo que o número de componentes principais ajustados seja o esperado.
         self.assertEqual(len(iris_fit.explained_variance), 2)
         self.assertEqual(iris_fit.components.shape[1], 2)
         #Garante que a quantidade de componentes principais ajustados é 2
         
-        # Testa a média
+        # Testa a média. Verifica se as médias dos atributos calculadas são semelhantes.
         self.assertTrue(np.allclose(iris_fit.mean, iris_fit_sklearn.mean_))
         #Verifica se a média calculada pelo PCA customizado é semelhante à do scikit-learn
 
@@ -50,10 +50,10 @@ class TestPCA(TestCase):
         O test_pca_transform verifica se a transformação reduz corretamente as dimensões dos dados.
         """
         pca = PCA(n_components=2)
-        x_reduced = pca.fit_transform(self.dataset)
+        x_reduced = pca.fit_transform(self.dataset) #Ajusta e transforma os dados em uma única etapa usando o método fit_transform da implementação customizada.
         #Ajusta o PCA e transforma os dados em uma única etapa
 
-        self.assertEqual(x_reduced.X.shape[1], 2) #Verifica se o número de dimensões transformadas é 2, como esperado
+        self.assertEqual(x_reduced.X.shape[1], 2) #Verifica se os dados foram reduzidos para 2 dimensões (especificado por n_components).
         self.assertEqual(x_reduced.X.shape[0], self.dataset.X.shape[0]) #Garante que o número de linhas (amostras) permaneça o mesmo após a transformação
 
 if __name__ == "__main__":
