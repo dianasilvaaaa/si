@@ -10,7 +10,7 @@ def rmse(y_true:np.ndarray, y_pred: np.ndarray) -> float:
     
     Parâmetros
     ----------
-    y_verdadeiro: np.ndarray
+    y_true: np.ndarray
         - Uma matriz que contém os valores verdadeiros do rótulo
     
     y_pred: np.ndarray
@@ -18,15 +18,17 @@ def rmse(y_true:np.ndarray, y_pred: np.ndarray) -> float:
 
     Retorna
     -------
-    flutuante
+    float:
         - O valor RMSE entre os valores reais e previstos
     “"”
 
 """
 
-    diferenca = y_true - y_pred
-    erro_quadratico = diferenca ** 2
-    media_erro = np.mean(erro_quadratico)
-    raiz_erro = np.sqrt(media_erro)
-    return raiz_erro
+    diferenca = y_true - y_pred #Calcula a diferença entre os valores reais (y_true) e os valores previstos (y_pred). A diferença pode ser positiva ou negativa.
+    erro_quadratico = diferenca ** 2 #Eleva ao quadrado os valores da diferença calculada. Isso elimina os sinais negativos e dá mais peso aos erros maiores.
+    media_erro = np.mean(erro_quadratico) #Calcula a média (ou seja, a soma dos erros quadráticos dividida pelo número total de valores). A média representa o Mean Squared Error (MSE).
+    raiz_erro = np.sqrt(media_erro) #Calcula a raiz quadrada da média do erro quadrático.
+    #Este é o Root Mean Squared Error (RMSE), retornado pela função.
+
+    return raiz_erro #Retorna o valor final de RMSE.
 
