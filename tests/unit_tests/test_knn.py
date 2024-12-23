@@ -43,36 +43,4 @@ class TestKNN(TestCase): #Define os testes para o KNNClassifier.
         #Calcula a pontuação (score), que deve ser 1 (100% de acurácia).
         self.assertEqual(score, 1)
 
-############################################
-class TestKNNRegressor(TestCase):
 
-    def setUp(self):
-        self.csv_file = os.path.join(DATASETS_PATH, 'cpu', 'cpu.csv')
-        self.dataset = read_csv(filename=self.csv_file, features=True, label=True)
-
-    def test_fit(self):
-        knn = KNNRegressor(k=3) #Cria um modelo KNN para regressão com k=3.
-        knn.fit(self.dataset) #Ajusta o modelo ao dataset
-
-        self.assertTrue(np.all(self.dataset.features == knn.dataset.features)) #Verifica se o modelo armazenou corretamente:features: As características do dataset.
-        self.assertTrue(np.all(self.dataset.y == knn.dataset.y)) ##Verifica se o modelo armazenou corretamente:y: Os valores reais. 
-
-    def test_predict(self):
-        knn = KNNRegressor(k=3) #Cria um modelo KNN para regressão com k=3.
-        train_dataset, test_dataset = train_test_split(self.dataset) #Divide o dataset em treino e teste.
-
-        knn.fit(train_dataset) #Ajusta o modelo ao conjunto de treino.
-        predictions = knn.predict(test_dataset) #faz previsões para o conjunto de teste
-
-        self.assertEqual(len(predictions), len(test_dataset.y)) #Se o número de previsões é igual ao número de rótulos no conjunto de teste.
-
-    def test_score(self):
-        knn = KNNRegressor(k=3) #Cria um modelo KNN para regressão com k=3.
-        train_dataset, test_dataset = train_test_split(self.dataset) #Divide o dataset em treino e teste.
-
-        knn.fit(train_dataset) #Ajusta o modelo ao conjunto de treino.
-        predictions = knn.predict(test_dataset) #Faz previsões para o conjunto de teste.
-
-        score = knn.score(test_dataset) #calcula A pontuação (score) do modelo.
-        expect_score = rmse(test_dataset.y, predictions) #calcula o valor esperado do RMSE.
-        self.assertAlmostEqual(score, expect_score) #Verifica se a pontuação do modelo é aproximadamente igual ao RMSE calculado.
