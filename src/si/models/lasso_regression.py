@@ -80,11 +80,9 @@ class LassoRegression(Model):
             X = dataset.X  # Usa os dados originais sem normalização
 
         m, n = X.shape # Obtém o número de amostras (m) e características (n)
-
         # Inicializa os parâmetros
         # m e n representam, respectivamente, o número de amostras (linhas) 
         # e n número de características (colunas) de X.
-
         self.theta = np.zeros(n) # é um vetor de coeficientes do modelo, e é inicializado com zeros. Ele terá o mesmo número de elementos que o número de características em X.
         self.theta_zero = 0 #é o intercepto do modelo (o termo constante), que também é inicializado com 0.
         """
