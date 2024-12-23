@@ -31,6 +31,7 @@ class TestDecisionTree(TestCase):
         decision_tree.fit(self.train_dataset)
 
         predictions = decision_tree.predict(self.test_dataset)
+        print(predictions)
 
         self.assertEqual(predictions.shape[0], self.test_dataset.shape()[0])
     
