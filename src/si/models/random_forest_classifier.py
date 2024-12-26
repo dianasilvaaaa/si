@@ -146,7 +146,6 @@ class RandomForestClassifier(Model):
         
         # Transpor para obter previsões para cada amostra
         all_predictions = np.array(all_predictions).T # Transpor Previsões: Cada linha de all_predictions agora corresponde a uma amostra do conjunto de dados, e cada coluna contém a predição feita por uma árvore
-    
         # Para cada linha, encontrar o valor mais comum (classe mais frequente)
         final_predictions = np.apply_along_axis(lambda x: np.bincount(x.astype(int)).argmax(), axis=1, arr=all_predictions)
 # np.bincount(x.astype(int)).argmax(): Conta a frequência de cada classe nas predições das árvores e seleciona a classe com maior frequência (votação majoritária).
