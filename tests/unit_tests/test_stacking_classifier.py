@@ -1,4 +1,3 @@
-import numpy as np
 from unittest import TestCase
 from datasets import DATASETS_PATH
 import os
@@ -11,15 +10,11 @@ from si.metrics.accuracy import accuracy
 class TestRandomForestClassifier(TestCase):
 
     def setUp(self):
-        # Configuração inicial para carregar o dataset e dividi-lo em treino e teste
         self.csv_file = os.path.join(DATASETS_PATH, 'breast_bin', 'breast-bin.csv')
         self.dataset = read_data_file(filename=self.csv_file, label=True, sep=",")
         self.train_dataset, self.test_dataset = stratified_train_test_split(self.dataset, test_size=0.3)
 
     def test_fit(self):
-        # Testar se o modelo RandomForestClassifier treina corretamente
-        random_forest = RandomForestClassifier(n_estimators=10, max_depth=5, seed=42)
-        random_forest.fit(self.train_dataset)
 
         # Verificar se o número de árvores treinadas é igual a n_estimators
         self.assertEqual(len(random_forest.trees), random_forest.n_estimators)
