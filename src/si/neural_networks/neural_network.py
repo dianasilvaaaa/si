@@ -5,6 +5,8 @@ import numpy as np
 from si.base.model import Model
 from si.data.dataset import Dataset
 from si.neural_networks.layers import Layer
+from si.neural_networks.layers import DenseLayer
+from si.neural_networks.layers import Dropout
 from si.neural_networks.losses import LossFunction, MeanSquaredError
 from si.neural_networks.optimizers import Optimizer, SGD
 from si.metrics.mse import mse
@@ -233,7 +235,7 @@ if __name__ == '__main__':
     from si.io.csv_file import read_csv
 
     # training data
-    dataset = read_csv('../../../datasets/iris/iris.csv', sep=',', features=True, label=True)
+    dataset = read_csv(r'C:/Users/35192/si/datasets/iris/iris.csv', sep=',', features=True, label=True)
     # convert labels to one-hot encoding
     new_y = np.zeros((dataset.y.shape[0], 3))
     for i, label in enumerate(dataset.y):
