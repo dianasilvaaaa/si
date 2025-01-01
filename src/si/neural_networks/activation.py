@@ -186,6 +186,7 @@ class TanhActivation(ActivationLayer):
     """
 
     def activation_function(self, input: np.ndarray)->np.ndarray:
+        #Calcula a tangente hiperbólica do input.
         """
         TanhActivation function.
 
@@ -202,6 +203,7 @@ class TanhActivation(ActivationLayer):
         return (np.exp(input) - np.exp(-input)) / (np.exp(input) + np.exp(-input))
     
     def derivative(self, input: np.ndarray):
+        #Calcula a derivada da função tanh.
         """
         Derivative of the TanhActivation function.
 
@@ -220,6 +222,8 @@ class TanhActivation(ActivationLayer):
 
 class SoftmaxActivation(ActivationLayer):
     """
+    Implementa a função de ativação softmax.
+    Útil para problemas de classificação multiclasses, pois converte logits em probabilidades.
     Softmaxactivation function.
     """
     def activation_function(self, input: np.ndarray)->np.ndarray:
@@ -240,6 +244,7 @@ class SoftmaxActivation(ActivationLayer):
         return exp_x / np.sum(exp_x, axis=1, keepdims=True)
 
     def derivative(self, input: np.ndarray)->np.ndarray:
+        #Calcula a derivada da função softmax.
         """
         Derivative of the SoftmaxActivation function.
 

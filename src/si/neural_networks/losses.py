@@ -157,8 +157,8 @@ class CategoricalCrossEntropy(LossFunction):
             The loss value.
         """
         # Avoid division by zero and log(0)
-        y_pred_clipped = np.clip(y_pred, 1e-15, 1 - 1e-15)
-        return -np.sum(y_true * np.log(y_pred_clipped))
+        y_pred_clipped = np.clip(y_pred, 1e-15, 1 - 1e-15) #np.clip restringe os valores de 𝑦pred para o intervalo [1𝑒−15,1 − 1𝑒−15].
+        return -np.sum(y_true * np.log(y_pred_clipped)) #Multiplica os valores reais (𝑦true) pelos logaritmos das previsões (log(𝑦pred)).
 
     def derivative(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         """
@@ -177,5 +177,5 @@ class CategoricalCrossEntropy(LossFunction):
             The derivative of the loss function.
         """
         # Avoid division by zero and log(0)
-        y_pred_clipped = np.clip(y_pred, 1e-15, 1 - 1e-15)
+        y_pred_clipped = np.clip(y_pred, 1e-15, 1 - 1e-15) #np.clip é usado para evitar divisões por 0.
         return -y_true / y_pred_clipped
