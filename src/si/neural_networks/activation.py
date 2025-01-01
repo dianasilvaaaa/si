@@ -175,18 +175,19 @@ class ReLUActivation(ActivationLayer):
             The derivative of the activation function.
         """
         return np.where(input >= 0, 1, 0)
-
+    
 
 ######## EX 13
 
+
 class TanhActivation(ActivationLayer):
     """
-    Tanh activation function.
+    TanhActivation function.
     """
 
-    def activation_function(self, input: np.ndarray) -> np.ndarray:
+    def activation_function(self, input: np.ndarray)->np.ndarray:
         """
-        Tanh activation function.
+        TanhActivation function.
 
         Parameters
         ----------
@@ -198,11 +199,11 @@ class TanhActivation(ActivationLayer):
         numpy.ndarray
             The output of the layer.
         """
-        return np.tanh(input)
-
-    def derivative(self, input: np.ndarray) -> np.ndarray:
+        return (np.exp(input) - np.exp(-input)) / (np.exp(input) + np.exp(-input))
+    
+    def derivative(self, input: np.ndarray):
         """
-        Derivative of the tanh activation function.
+        Derivative of the TanhActivation function.
 
         Parameters
         ----------
@@ -214,18 +215,16 @@ class TanhActivation(ActivationLayer):
         numpy.ndarray
             The derivative of the activation function.
         """
-        return 1 - np.tanh(input) ** 2
-
+        return 1 - self.activation_function(input) ** 2
 
 
 class SoftmaxActivation(ActivationLayer):
     """
-    Softmax activation function.
+    Softmaxactivation function.
     """
-
-    def activation_function(self, input: np.ndarray) -> np.ndarray:
+    def activation_function(self, input: np.ndarray)->np.ndarray:
         """
-        Softmax activation function.
+        SoftmaxActivation function.
 
         Parameters
         ----------
@@ -237,13 +236,12 @@ class SoftmaxActivation(ActivationLayer):
         numpy.ndarray
             The output of the layer.
         """
-        # Subtrai o valor máximo para estabilidade numérica
-        exps = np.exp(input - np.max(input, axis=-1, keepdims=True))
-        return exps / np.sum(exps, axis=-1, keepdims=True)
+        exp_x = np.exp(input - np.max(input, axis=1, keepdims=True))
+        return exp_x / np.sum(exp_x, axis=1, keepdims=True)
 
-    def derivative(self, input: np.ndarray) -> np.ndarray:
+    def derivative(self, input: np.ndarray)->np.ndarray:
         """
-        Derivative of the softmax activation function.
+        Derivative of the SoftmaxActivation function.
 
         Parameters
         ----------
@@ -255,5 +253,4 @@ class SoftmaxActivation(ActivationLayer):
         numpy.ndarray
             The derivative of the activation function.
         """
-        softmax_output = self.activation_function(input)
-        return softmax_output * (1 - softmax_output)  # Jacobiano simplificado
+        return self.activation_function(input) * (1 - self.activation_function(input))

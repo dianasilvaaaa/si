@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import copy
-from si.neural_networks.optimizers import Optimizer
+
 import numpy as np
 
 from si.neural_networks.optimizers import Optimizer
@@ -50,8 +50,8 @@ class DenseLayer(Layer):
             The shape of the input to the layer.
         """
         super().__init__()
-        self.n_units = n_units #O número de unidades (neurônios) na camada densa. Este valor define quantos neurônios estarão presentes na camada.
-        self._input_shape = input_shape #A forma da entrada (geralmente, a quantidade de neurônios na camada anterior).
+        self.n_units = n_units
+        self._input_shape = input_shape
 
         self.input = None
         self.output = None
@@ -68,6 +68,7 @@ class DenseLayer(Layer):
         return self
 
     def parameters(self) -> int:
+        
         """
         Returns the number of parameters of the layer.
 
@@ -99,11 +100,51 @@ class DenseLayer(Layer):
         return self.output
     
 
-######## EX 12
+    def backward_propagation(self, output_error: np.ndarray) -> float:
+        """
+        Perform backward propagation on the given output error.
+        Computes the dE/dW, dE/dB for a given output_error=dE/dY.
+        Returns input_error=dE/dX to feed the previous layer.
+        Parameters
+        ----------
+        output_error: numpy.ndarray
+            The output error of the layer.
+        Returns
+        -------
+        float
+            The input error of the layer.
+        """
+        # computes the layer input error (the output error from the previous layer),
+        # dE/dX, to pass on to the previous layer
+        # SHAPES: (batch_size, input_columns) = (batch_size, output_columns) * (output_columns, input_columns)
+        input_error = np.dot(output_error, self.weights.T)
+
+        # computes the weight error: dE/dW = X.T * dE/dY
+        # SHAPES: (input_columns, output_columns) = (input_columns, batch_size) * (batch_size, output_columns)
+        weights_error = np.dot(self.input.T, output_error)
+        # computes the bias error: dE/dB = dE/dY
+        # SHAPES: (1, output_columns) = SUM over the rows of a matrix of shape (batch_size, output_columns)
+        bias_error = np.sum(output_error, axis=0, keepdims=True)
+
+        # updates parameters
+        self.weights = self.w_opt.update(self.weights, weights_error)
+        self.biases = self.b_opt.update(self.biases, bias_error)
+        return input_error
+
+    def output_shape(self) -> tuple:
+        """
+        Returns the shape of the output of the layer.
+        Returns
+        -------
+        tuple
+            The shape of the output of the layer.
+        """
+        return (self.n_units,)
+
 
 class Dropout(Layer):
     """
-    Dropout layer for a neural network.
+    Dropout layer for neural networks.
     """
 
     def __init__(self, probability: float):
@@ -113,23 +154,11 @@ class Dropout(Layer):
         Parameters
         ----------
         probability: float
-            The dropout rate, a value between 0 and 1.
-
-            
-probability: O parâmetro probability define a taxa de "desligamento" ou dropout rate. 
-Ele é um valor entre 0 e 1, onde 0 significa "sem dropout" e 1 significa "desligar todos os neurônios". 
-Esse valor define a probabilidade de cada neurônio ser desligado durante o treinamento.
-
-mask: A mask é uma matriz binária que armazena quais neurônios estão ativos ou inativos durante a execução do dropout. 
-Quando um neurônio é "desligado", ele será multiplicado por zero na máscara.
-
-input e output: São as variáveis que armazenam a entrada e a saída da camada, respectivamente.
-
-
-
+            The dropout rate, between 0 and 1.
         """
         super().__init__()
         self.probability = probability
+        
         self.mask = None
         self.input = None
         self.output = None
@@ -143,7 +172,7 @@ input e output: São as variáveis que armazenam a entrada e a saída da camada,
         input: numpy.ndarray
             The input to the layer.
         training: bool
-            Whether the layer is in training mode or in inference mode.
+            Whether the layer is in training mode or inference mode.
 
         Returns
         -------
@@ -152,47 +181,52 @@ input e output: São as variáveis que armazenam a entrada e a saída da camada,
         """
         self.input = input
         if training:
+            # Compute scaling factor
             scaling_factor = 1 / (1 - self.probability)
+            # Generate the mask
             self.mask = np.random.binomial(1, 1 - self.probability, size=input.shape)
+            # Apply the mask and scale the output
             self.output = input * self.mask * scaling_factor
         else:
+            # During inference, the input is not changed
             self.output = input
         return self.output
 
-    def backward_propagation(self, error: np.ndarray) -> np.ndarray:
+    def backward_propagation(self, output_error: np.ndarray) -> np.ndarray:
         """
-        Perform backward propagation on the given error.
+        Perform backward propagation on the given output error.
 
         Parameters
         ----------
-        error: numpy.ndarray
-            The error from the subsequent layer.
+        output_error: numpy.ndarray
+            The output error of the layer.
 
         Returns
         -------
         numpy.ndarray
-            The propagated error to the previous layer.
+            The input error of the layer.
         """
-        return error * self.mask  # Only propagate error for active neurons
+        # Multiply the output error by the mask
+        return output_error * self.mask
 
     def output_shape(self) -> tuple:
         """
-        Return the shape of the output.
+        Returns the shape of the output of the layer.
 
         Returns
         -------
         tuple
-            The shape of the output, which is the same as the input shape.
+            The input shape (dropout does not change the shape of the data).
         """
         return self.input_shape()
 
     def parameters(self) -> int:
         """
-        Return the number of learnable parameters in the layer.
+        Returns the number of parameters of the layer.
 
         Returns
         -------
         int
-            Always returns 0 as dropout layers do not have learnable parameters.
+            Always returns 0 (dropout layers do not have learnable parameters).
         """
         return 0

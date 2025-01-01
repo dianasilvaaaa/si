@@ -64,36 +64,37 @@ class SGD(Optimizer):
             self.retained_gradient = np.zeros(np.shape(w))
         self.retained_gradient = self.momentum * self.retained_gradient + (1 - self.momentum) * grad_loss_w
         return w - self.learning_rate * self.retained_gradient
-    
-###### EX15 
-class Adam(Optimizer):
 
-    def __init__(self, learning_rate: float = 0.001, beta1: float = 0.9, beta2: float = 0.999, epsilon: float = 1e-8):
+###### EX15 
+
+class Adam(Optimizer):
+    def __init__(self, learning_rate: float = 0.01, beta_1: float = 0.9, beta_2: float = 0.999, epsilon: float = 1e-8):
         """
-        Initialize the optimizer.
+        Initialize the Adam optimizer.
 
         Parameters
         ----------
         learning_rate: float
-            The learning rate to use for updating the weights(optimizer).
-        beta1: float
-            The exponential decay rate for the first moment estimates.
-        beta2: float
-            The exponential decay rate for the second moment estimates.
+            The learning rate to use for updating the weights.
+        beta_1: float
+            The exponential decay rate for the 1st moment estimates. Defaults to 0.9.
+        beta_2: float
+            The exponential decay rate for the 2nd moment estimates. Defaults to 0.999.
         epsilon: float
-            A small constant for numerical stability.
+            A small constant for numerical stability. Defaults to 1e-8.
         """
         super().__init__(learning_rate)
-        self.beta1 = beta1
-        self.beta2 = beta2
+        self.beta_1 = beta_1
+        self.beta_2 = beta_2
         self.epsilon = epsilon
-        self.m = None  # First moment vector
-        self.v = None  # Second moment vector
-        self.t = 0     # Time step (epoch)
+        
+        self.m = None
+        self.v = None
+        self.t = 0
 
     def update(self, w: np.ndarray, grad_loss_w: np.ndarray) -> np.ndarray:
         """
-        Update the weights of the layer.
+        Update the weights of the layer using the Adam optimizer.
 
         Parameters
         ----------
@@ -107,26 +108,27 @@ class Adam(Optimizer):
         numpy.ndarray
             The updated weights of the layer.
         """
+        # Verify if m and v are initialized, if not initialize them as matrices of zeros
         if self.m is None:
-            # Initialize m and v with zeros
-            self.m = np.zeros(np.shape(w))
-            self.v = np.zeros(np.shape(w))
-        
-        # Increment time step
+            self.m = np.zeros_like(w)
+        if self.v is None:
+            self.v = np.zeros_like(w)
+
+        # Update time stamp (t += 1)
         self.t += 1
 
-        # Update biased first moment estimate
-        self.m = self.beta1 * self.m + (1 - self.beta1) * grad_loss_w
+        # Compute and update m
+        self.m = self.beta_1 * self.m + (1 - self.beta_1) * grad_loss_w
 
-        # Update biased second raw moment estimate
-        self.v = self.beta2 * self.v + (1 - self.beta2) * (grad_loss_w ** 2)
+        # Compute and update v
+        self.v = self.beta_2 * self.v + (1 - self.beta_2) * (grad_loss_w ** 2)
 
-        # Compute bias-corrected first moment estimate
-        m_hat = self.m / (1 - self.beta1 ** self.t)
+        # Compute m_hat
+        m_hat = self.m / (1 - self.beta_1 ** self.t)
 
-        # Compute bias-corrected second moment estimate
-        v_hat = self.v / (1 - self.beta2 ** self.t)
+        # Compute v_hat
+        v_hat = self.v / (1 - self.beta_2 ** self.t)
 
-        # Update weights
+        # Compute the moving averages and return the updated weights
         return w - self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
     
