@@ -1,5 +1,4 @@
 from abc import abstractmethod
-
 import numpy as np
 
 
@@ -131,6 +130,3 @@ class Adam(Optimizer):
         # Update weights
         return w - self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
     
-        #OU
-        #w -= self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
-        #return w

@@ -1,8 +1,6 @@
 from abc import abstractmethod
 from typing import Union
-
 import numpy as np
-
 from si.neural_networks.layers import Layer
 
 
@@ -177,9 +175,6 @@ class ReLUActivation(ActivationLayer):
             The derivative of the activation function.
         """
         return np.where(input >= 0, 1, 0)
-
-
-
 
 
 ######## EX 13

@@ -53,19 +53,12 @@ class DenseLayer(Layer):
         self.n_units = n_units #O número de unidades (neurônios) na camada densa. Este valor define quantos neurônios estarão presentes na camada.
         self._input_shape = input_shape #A forma da entrada (geralmente, a quantidade de neurônios na camada anterior).
 
-#Variáveis que armazenam as informações necessárias para a operação da camada. weights e biases são os parâmetros que a camada aprenderá durante o treinamento.
         self.input = None
         self.output = None
         self.weights = None
         self.biases = None
 
     def initialize(self, optimizer: Optimizer) -> 'DenseLayer':
-
-        """
-Este método é responsável por inicializar os pesos e vieses da camada. Os pesos são inicializados de forma aleatória, com valores entre -0.5 e 0.5, e os vieses são inicializados com zero. 
-O optimizer (que será um objeto da classe Optimizer) é copiado para as variáveis w_opt e b_opt, para ser usado mais tarde no processo de otimização (ajuste dos parâmetros durante o treinamento).
-
-        """
         # initialize weights from a 0 centered uniform distribution [-0.5, 0.5)
         self.weights = np.random.rand(self.input_shape()[0], self.n_units) - 0.5
         # initialize biases to 0
@@ -76,8 +69,6 @@ O optimizer (que será um objeto da classe Optimizer) é copiado para as variáv
 
     def parameters(self) -> int:
         """
-        Este método retorna o número total de parâmetros da camada, ou seja, a quantidade de elementos em weights e biases. Ele é importante para saber quantos parâmetros a rede possui no total, o que afeta o treinamento
-
         Returns the number of parameters of the layer.
 
         Returns
@@ -88,21 +79,7 @@ O optimizer (que será um objeto da classe Optimizer) é copiado para as variáv
         return np.prod(self.weights.shape) + np.prod(self.biases.shape)
 
     def forward_propagation(self, input: np.ndarray, training: bool) -> np.ndarray:
-
         """
-Este é o método que realiza a propagação para frente. Ou seja, pega o input (entrada da camada) e calcula a saída da camada de acordo com a fórmula:
-
-output = 𝑋⋅𝑊+𝑏 
-
-X é a entrada,
-𝑊 são os pesos,
-𝑏 são os vieses.
-
-Ele retorna a saída da camada (self.output), que será usada como entrada para a próxima camada ou como o resultado final.
-
-        forward_propagation(self, input): Método abstrato. Este método será responsável 
-        por implementar a propagação para frente, ou seja, como os dados entram na camada e saem dela após algum processamento.
-
         Perform forward propagation on the given input.
 
         Parameters
