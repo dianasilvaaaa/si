@@ -68,7 +68,7 @@ class DenseLayer(Layer):
         return self
 
     def parameters(self) -> int:
-        
+
         """
         Returns the number of parameters of the layer.
 
@@ -141,6 +141,8 @@ class DenseLayer(Layer):
         """
         return (self.n_units,)
 
+
+###### EX 12
 
 class Dropout(Layer):
     """
