@@ -84,12 +84,36 @@ class TestSoftmaxLayer(TestCase):
         self.train_dataset, self.test_dataset = train_test_split(self.dataset)
 
     def test_activation_function(self):
+        """
+• Objetivo: Garantir que a função de ativação Softmax produz probabilidades normalizadas, ou seja, cada linha 
+da saída deve somar exatamente 1. 
+
+• Importância: 
+- A Softmax é usada para converter logits em probabilidades. Se as somas das linhas não forem próximas 
+de 1, a saída não será interpretável como probabilidades. 
+
+- Este teste detecta erros no cálculo de normalização, como esquecer de dividir pelo somatório ou 
+problemas de precisão.
+
+
+        """
         softmax_layer = SoftmaxActivation()
         result = softmax_layer.activation_function(self.dataset.X)
         # Each row in softmax output should sum to 1
         self.assertTrue(all([np.isclose(np.sum(row), 1.0) for row in result]))
 
     def test_derivative(self):
+
+        """
+Objetivo: Verificar se a derivada da Softmax tem o mesmo shape que a entrada. 
+
+Importância: 
+• Assim como na TanhActivation, a derivada da Softmax é usada no backpropagation. O shape da derivada 
+deve coincidir com o da entrada para que a rede possa calcular os gradientes corretamente. 
+• Este teste garante que o cálculo da derivada está alinhado com o fluxo esperado de dados durante o 
+treinamento.
+
+        """
         softmax_layer = SoftmaxActivation()
         derivative = softmax_layer.derivative(self.dataset.X)
         self.assertEqual(derivative.shape[0], self.dataset.X.shape[0])
