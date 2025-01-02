@@ -125,7 +125,6 @@ class Adam(Optimizer):
 
         # Compute m_hat
         m_hat = self.m / (1 - self.beta_1 ** self.t)
-
         # Compute v_hat
         v_hat = self.v / (1 - self.beta_2 ** self.t)
 
