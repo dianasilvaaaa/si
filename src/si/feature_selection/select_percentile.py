@@ -43,7 +43,7 @@ class SelectPercentile(Transformer):
             - Returns self instance with the F and P values for each feature calculated using the scoring function.
         """
 
-        self.F,self.p = self.score_func(dataset) #A função score_func calcula os escores (F) e p-values (p) para todas as características.
+        self.F,self.p = self.score_func(dataset) #A função score_func calcula os scores (F) e p-values (p) para todas as características.
         
         return self
     
